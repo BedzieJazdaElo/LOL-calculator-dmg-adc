@@ -56,7 +56,17 @@ class Champion_class
     {
         std::ifstream file("dane.csv");
         std::string line;
-        while(std::getline(file, line,';'));
+        if(file.is_open())
+        {
+            while(std::getline(file, line))
+            {
+                if(line.find(name)!=std::string::npos)
+                {
+                        std::cout<<line<<std::endl;
+                }
+            }
+        }
+        
     }
 
     units outputMovementSpeed()
