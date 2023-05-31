@@ -4,6 +4,6 @@
 int main()
 {
     Champion_class champion1("Aphelios");
-    std::cout<<"koniec\n";
+    champion1.outputStats(1);
     return 0;
 }

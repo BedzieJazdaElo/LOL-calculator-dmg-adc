@@ -24,7 +24,7 @@ class Champion_class
     std::string name;
 
     units health, healt_regeneration, // per 5 sec
-        armor, magic_resist, movement_speed, mana, mana_regeneration, attack_damage, crit_damage, attack_range, base_AS, attack_windup, AS_ratio = 1;
+        armor, magic_resist, movement_speed, mana, mana_regeneration, attack_damage, crit_damage=1.75, attack_range, base_AS, attack_windup=0, AS_ratio = 1;
 
     units healthPerLevel, healt_regenerationPerLevel, armorPerLevel, magic_resistPerLevel, manaPerLevel, mana_regenerationPerLevel, attack_damagePerLevel, AS_PerLevel;
 
@@ -57,8 +57,6 @@ public:
     Champion_class(std::string name)
     {
         std::ifstream file("dane.csv");// https://leagueoflegends.fandom.com/wiki/List_of_champions/Base_statistics
-        
-        //https://leagueoflegends.fandom.com/wiki/List_of_champions/Basic_attacks
         std::string line;
         if (file.is_open())
         {
@@ -124,7 +122,7 @@ public:
                             break;
 
                         case 12:
-                            this->AS_PerLevel = CONVERT(temp);
+                            this->AS_PerLevel = CONVERT(temp)/100;
                             break;
 
                         case 13:
@@ -213,5 +211,42 @@ public:
     units outputAttackDamage(uint8_t level)
     {
         return attack_damage + (attack_damagePerLevel * (level - 1));
+    }
+
+    units outputAttackRange()
+    {
+        return attack_range;
+    }
+
+    units outputAttackWindup()
+    {
+        return attack_windup;
+    }
+
+    units outputCritDamage()
+    {
+        return crit_damage;
+    }
+
+    std::string outputName()
+    {
+        return name;
+    }
+
+    void outputStats(uint8_t level)
+    {
+        std::cout << "Name: " << name << std::endl;
+        std::cout << "Health: " << outputHealth(level) << std::endl;
+        std::cout << "Health regeneration: " << outputHealthRegeneration(level) << std::endl;
+        std::cout << "Armor: " << outputArmor(level) << std::endl;
+        std::cout << "Magic resist: " << outputMagicResist(level) << std::endl;
+        std::cout << "Movement speed: " << outputMovementSpeed() << std::endl;
+        std::cout << "Mana: " << outputMana(level) << std::endl;
+        std::cout << "Mana regeneration: " << outputManaRegeneration(level) << std::endl;
+        std::cout << "Attack damage: " << outputAttackDamage(level) << std::endl;
+        std::cout << "Attack speed: " << outputAttackSpeed(level, 0) << std::endl;
+        std::cout << "Attack range: " << outputAttackRange() << std::endl;
+        std::cout << "Attack windup: " << outputAttackWindup() << std::endl;
+        std::cout << "Crit damage: " << outputCritDamage() << std::endl;
     }
 };
