@@ -4,4 +4,6 @@
 int main()
 {
     Champion_class champion1("Aphelios");
+    std::cout<<"koniec\n";
+    return 0;
 }
