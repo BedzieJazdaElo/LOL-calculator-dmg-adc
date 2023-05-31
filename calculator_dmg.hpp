@@ -1,9 +1,10 @@
 #pragma once
-#include<iostream>
+#include <iostream>
 #include <fstream>
 #include <string>
 
-using units=float;
+using units = double;
+#define CONVERT std::stod
 
 // equation for calculating damage after armor and magic resist
 units DMG_after_resist(units dmg, units resist) // https://leagueoflegends.fandom.com/wiki/Armor , the same for magic resist
@@ -20,13 +21,14 @@ units DMG_after_resist(units dmg, units resist) // https://leagueoflegends.fando
 
 class Champion_class
 {
-    units health, healt_regeneration,// per 5 sec
-     armor, magic_resist, movement_speed, mana, mana_regeneration, attack_damage, crit_damage, attack_range, base_AS, attack_windup, AS_ratio=1;
+    std::string name;
+
+    units health, healt_regeneration, // per 5 sec
+        armor, magic_resist, movement_speed, mana, mana_regeneration, attack_damage, crit_damage, attack_range, base_AS, attack_windup, AS_ratio = 1;
 
     units healthPerLevel, healt_regenerationPerLevel, armorPerLevel, magic_resistPerLevel, manaPerLevel, mana_regenerationPerLevel, attack_damagePerLevel, AS_PerLevel;
 
-    public:
-
+public:
     Champion_class(units health, units healt_regeneration, units armor, units magic_resist, units movement_speed, units mana, units mana_regeneration, units attack_damage, units crit_damage, units attack_range, units base_AS, units attack_windup, units AS_ratio, units healthPerLevel, units healt_regenerationPerLevel, units armorPerLevel, units magic_resistPerLevel, units manaPerLevel, units mana_regenerationPerLevel, units attack_damagePerLevel, units AS_PerLevel)
     {
         this->health = health;
@@ -51,67 +53,164 @@ class Champion_class
         this->attack_damagePerLevel = attack_damagePerLevel;
         this->AS_PerLevel = AS_PerLevel;
     }
-    
+
     Champion_class(std::string name)
     {
-        std::ifstream file("dane.csv");
+        std::ifstream file("dane.csv");// https://leagueoflegends.fandom.com/wiki/List_of_champions/Base_statistics
+        
+        //https://leagueoflegends.fandom.com/wiki/List_of_champions/Basic_attacks
         std::string line;
-        if(file.is_open())
+        if (file.is_open())
         {
-            while(std::getline(file, line))
+
+            while (std::getline(file, line))
             {
-                if(line.find(name)!=std::string::npos)
+                if (line.find(name) != std::string::npos)
                 {
-                        std::cout<<line<<std::endl;
+                    size_t i{};
+                    std::string temp;
+                    do
+                    {
+                        temp = line.substr(0, line.find(";"));
+                        switch (i)
+                        {
+                        case 0:
+                            this->name = temp;
+                            break;
+                            break;
+
+                        case 1:
+                            this->health = CONVERT(temp);
+                            break;
+
+                        case 2:
+                            this->healthPerLevel = CONVERT(temp);
+                            break;
+
+                        case 3:
+                            this->healt_regeneration = CONVERT(temp);
+                            break;
+
+                        case 4:
+                            this->healt_regenerationPerLevel = CONVERT(temp);
+                            break;
+
+                        case 5:
+                            this->mana = CONVERT(temp);
+                            break;
+
+                        case 6:
+                            this->manaPerLevel = CONVERT(temp);
+                            break;
+
+                        case 7:
+                            this->mana_regeneration = CONVERT(temp);
+                            break;
+
+                        case 8:
+                            this->mana_regenerationPerLevel = CONVERT(temp);
+                            break;
+
+                        case 9:
+                            this->attack_damage = CONVERT(temp);
+                            break;
+
+                        case 10:
+                            this->attack_damagePerLevel = CONVERT(temp);
+                            break;
+
+                        case 11:
+                            this->base_AS = CONVERT(temp);
+                            break;
+
+                        case 12:
+                            this->AS_PerLevel = CONVERT(temp);
+                            break;
+
+                        case 13:
+                            this->armor = CONVERT(temp);
+                            break;
+
+                        case 14:
+                            this->armorPerLevel = CONVERT(temp);
+                            break;
+
+                        case 15:
+                            this->magic_resist = CONVERT(temp);
+                            break;
+
+                        case 16:
+                            this->magic_resistPerLevel = CONVERT(temp);
+                            break;
+
+                        case 17:
+                            this->movement_speed = CONVERT(temp);
+                            break;
+
+                        case 18:
+                            this->attack_range = CONVERT(temp);
+                            break;
+
+                        case 19:
+                            goto exit;
+                            break;
+
+                        default:
+                            std::cout << "Error" << std::endl;
+                            goto exit;
+                        }
+                        line.erase(0, temp.length() + 1);
+                        i++;
+                    } while (line != "");
                 }
             }
         }
-        
+    exit:
+        file.close();
     }
 
     units outputMovementSpeed()
     {
         return movement_speed;
     }
-//
-    units outputAttackSpeed(uint8_t level, units bonusAttackSpeed)// https://leagueoflegends.fandom.com/wiki/Champion_statistic#Attack_speed_calculations
+    //
+    units outputAttackSpeed(uint8_t level, units bonusAttackSpeed) // https://leagueoflegends.fandom.com/wiki/Champion_statistic#Attack_speed_calculations
     {
-        return base_AS + (AS_ratio+((AS_PerLevel*(level-1)*(0.7025+0.0175*(level-1)))+bonusAttackSpeed));
+        return base_AS + (AS_ratio + ((AS_PerLevel * (level - 1) * (0.7025 + 0.0175 * (level - 1))) + bonusAttackSpeed));
     }
 
     units outputHealth(uint8_t level)
     {
-        return health + (healthPerLevel*(level-1));
+        return health + (healthPerLevel * (level - 1));
     }
 
     units outputHealthRegeneration(uint8_t level)
     {
-        return healt_regeneration + (healt_regenerationPerLevel*(level-1));
+        return healt_regeneration + (healt_regenerationPerLevel * (level - 1));
     }
 
     units outputArmor(uint8_t level)
     {
-        return armor + (armorPerLevel*(level-1));
+        return armor + (armorPerLevel * (level - 1));
     }
 
     units outputMagicResist(uint8_t level)
     {
-        return magic_resist + (magic_resistPerLevel*(level-1));
+        return magic_resist + (magic_resistPerLevel * (level - 1));
     }
 
     units outputMana(uint8_t level)
     {
-        return mana + (manaPerLevel*(level-1));
+        return mana + (manaPerLevel * (level - 1));
     }
 
     units outputManaRegeneration(uint8_t level)
     {
-        return mana_regeneration + (mana_regenerationPerLevel*(level-1));
+        return mana_regeneration + (mana_regenerationPerLevel * (level - 1));
     }
 
     units outputAttackDamage(uint8_t level)
     {
-        return attack_damage + (attack_damagePerLevel*(level-1));
+        return attack_damage + (attack_damagePerLevel * (level - 1));
     }
-
 };
