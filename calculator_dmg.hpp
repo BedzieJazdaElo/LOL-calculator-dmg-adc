@@ -3,11 +3,12 @@
 #include <fstream>
 #include <string>
 
-using units = double;
+using UNITS = double;
+using LEVEL = uint8_t;
 #define CONVERT std::stod
 
 // equation for calculating damage after armor and magic resist
-units DMG_after_resist(units dmg, units resist) // https://leagueoflegends.fandom.com/wiki/Armor , the same for magic resist
+UNITS DMG_after_resist(UNITS dmg, UNITS resist) // https://leagueoflegends.fandom.com/wiki/Armor , the same for magic resist
 {
     if (resist >= 0)
     {
@@ -23,13 +24,13 @@ class Champion_class
 {
     std::string name;
 
-    units health, healt_regeneration, // per 5 sec
+    UNITS health, healt_regeneration, // per 5 sec
         armor, magic_resist, movement_speed, mana, mana_regeneration, attack_damage, crit_damage=1.75, attack_range, base_AS, attack_windup=0, AS_ratio = 1;
 
-    units healthPerLevel, healt_regenerationPerLevel, armorPerLevel, magic_resistPerLevel, manaPerLevel, mana_regenerationPerLevel, attack_damagePerLevel, AS_PerLevel;
+    UNITS healthPerLevel, healt_regenerationPerLevel, armorPerLevel, magic_resistPerLevel, manaPerLevel, mana_regenerationPerLevel, attack_damagePerLevel, AS_PerLevel;
 
 public:
-    Champion_class(units health, units healt_regeneration, units armor, units magic_resist, units movement_speed, units mana, units mana_regeneration, units attack_damage, units crit_damage, units attack_range, units base_AS, units attack_windup, units AS_ratio, units healthPerLevel, units healt_regenerationPerLevel, units armorPerLevel, units magic_resistPerLevel, units manaPerLevel, units mana_regenerationPerLevel, units attack_damagePerLevel, units AS_PerLevel)
+    Champion_class(UNITS health, UNITS healt_regeneration, UNITS armor, UNITS magic_resist, UNITS movement_speed, UNITS mana, UNITS mana_regeneration, UNITS attack_damage, UNITS crit_damage, UNITS attack_range, UNITS base_AS, UNITS attack_windup, UNITS AS_ratio, UNITS healthPerLevel, UNITS healt_regenerationPerLevel, UNITS armorPerLevel, UNITS magic_resistPerLevel, UNITS manaPerLevel, UNITS mana_regenerationPerLevel, UNITS attack_damagePerLevel, UNITS AS_PerLevel)
     {
         this->health = health;
         this->healt_regeneration = healt_regeneration;
@@ -168,62 +169,62 @@ public:
         file.close();
     }
 
-    units outputMovementSpeed()
+    UNITS outputMovementSpeed()
     {
         return movement_speed;
     }
     //
-    units outputAttackSpeed(uint8_t level, units bonusAttackSpeed) // https://leagueoflegends.fandom.com/wiki/Champion_statistic#Attack_speed_calculations
+    UNITS outputAttackSpeed(LEVEL level, UNITS bonusAttackSpeed) // https://leagueoflegends.fandom.com/wiki/Champion_statistic#Attack_speed_calculations
     {
         return base_AS + (AS_ratio + ((AS_PerLevel * (level - 1) * (0.7025 + 0.0175 * (level - 1))) + bonusAttackSpeed));
     }
 
-    units outputHealth(uint8_t level)
+    UNITS outputHealth(LEVEL level)
     {
         return health + (healthPerLevel * (level - 1));
     }
 
-    units outputHealthRegeneration(uint8_t level)
+    UNITS outputHealthRegeneration(LEVEL level)
     {
         return healt_regeneration + (healt_regenerationPerLevel * (level - 1));
     }
 
-    units outputArmor(uint8_t level)
+    UNITS outputArmor(LEVEL level)
     {
         return armor + (armorPerLevel * (level - 1));
     }
 
-    units outputMagicResist(uint8_t level)
+    UNITS outputMagicResist(LEVEL level)
     {
         return magic_resist + (magic_resistPerLevel * (level - 1));
     }
 
-    units outputMana(uint8_t level)
+    UNITS outputMana(LEVEL level)
     {
         return mana + (manaPerLevel * (level - 1));
     }
 
-    units outputManaRegeneration(uint8_t level)
+    UNITS outputManaRegeneration(LEVEL level)
     {
         return mana_regeneration + (mana_regenerationPerLevel * (level - 1));
     }
 
-    units outputAttackDamage(uint8_t level)
+    UNITS outputAttackDamage(LEVEL level)
     {
         return attack_damage + (attack_damagePerLevel * (level - 1));
     }
 
-    units outputAttackRange()
+    UNITS outputAttackRange()
     {
         return attack_range;
     }
 
-    units outputAttackWindup()
+    UNITS outputAttackWindup()
     {
         return attack_windup;
     }
 
-    units outputCritDamage()
+    UNITS outputCritDamage()
     {
         return crit_damage;
     }
@@ -233,7 +234,7 @@ public:
         return name;
     }
 
-    void outputStats(uint8_t level)
+    void outputStats(LEVEL level)
     {
         std::cout << "Name: " << name << std::endl;
         std::cout << "Health: " << outputHealth(level) << std::endl;
@@ -249,4 +250,57 @@ public:
         std::cout << "Attack windup: " << outputAttackWindup() << std::endl;
         std::cout << "Crit damage: " << outputCritDamage() << std::endl;
     }
+
+    UNITS outputTimeForAA(LEVEL level, UNITS bonusAttackSpeed)
+    {
+        return (1 / outputAttackSpeed(level, bonusAttackSpeed));
+    }
 };
+
+void fight(Champion_class champion1, Champion_class champion2, LEVEL level1, LEVEL level2)
+{
+    UNITS time{};
+    UNITS health1{ champion1.outputHealth(level1) };
+    UNITS health2{ champion2.outputHealth(level2) };
+    UNITS timeAA1{ champion1.outputTimeForAA(level1, 0) };
+    UNITS timeAA2{ champion2.outputTimeForAA(level2, 0) };
+
+    while(health1 > 0 && health2 > 0)
+    {
+        if (timeAA1 < timeAA2)
+        {
+            health2 -= champion1.outputAttackDamage(level1);
+            time += timeAA1;
+            timeAA2 -= timeAA1;
+            timeAA1= champion1.outputTimeForAA(level1, 0);
+        }
+        else if (timeAA1 > timeAA2)
+        {
+            health1 -= champion2.outputAttackDamage(level2);
+            time += timeAA2;
+            timeAA1 -= timeAA2;
+            timeAA2 = champion2.outputTimeForAA(level2, 0);
+        }
+        else
+        {
+            health1 -= champion2.outputAttackDamage(level2);
+            health2 -= champion1.outputAttackDamage(level1);
+            time += timeAA1;
+            timeAA1 = champion1.outputTimeForAA(level1, 0);
+            timeAA2 = champion2.outputTimeForAA(level2, 0);
+        }
+    }
+
+    if(health1 <= 0 && health2 <= 0)
+    {
+        std::cout << "Draw" << std::endl;
+    }
+    else if(health1 <= 0)
+    {
+        std::cout << champion2.outputName() << " won " << "in " << time <<" seconds"<< std::endl;
+    }
+    else
+    {
+        std::cout << champion1.outputName() << " won " << "in " << time <<" seconds"<< std::endl;
+    }
+}

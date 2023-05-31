@@ -4,6 +4,6 @@
 int main()
 {
     Champion_class champion1("Aphelios");
-    champion1.outputStats(1);
-    return 0;
+    Champion_class champion2("Aatrox");
+    fight(champion1, champion2, 1, 1);// output: Aatrox won in 6.05694 seconds
 }
